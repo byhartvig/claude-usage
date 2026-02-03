@@ -34,7 +34,6 @@ struct MenuBarIconView: View {
     var body: some View {
         if let image = loadMenuBarIcon() {
             Image(nsImage: image)
-                .renderingMode(.template)
         } else {
             ClaudeLogoView(size: 14, color: .primary)
         }
@@ -43,8 +42,7 @@ struct MenuBarIconView: View {
     private func loadMenuBarIcon() -> NSImage? {
         if let url = Bundle.module.url(forResource: "MenuBarIcon", withExtension: "png"),
            let image = NSImage(contentsOf: url) {
-            image.size = NSSize(width: 16, height: 16)
-            image.isTemplate = true
+            image.size = NSSize(width: 18, height: 18)
             return image
         }
         return nil
