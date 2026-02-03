@@ -1,4 +1,5 @@
 import SwiftUI
+import AppKit
 
 @main
 struct ClaudeUsageApp: App {
@@ -19,12 +20,33 @@ struct ClaudeUsageApp: App {
 
     private var menuBarLabel: some View {
         HStack(spacing: 4) {
-            ClaudeLogoView(size: 14, color: .primary)
+            MenuBarIconView()
             if let session = usageState.sessionLimit {
                 Text(String(format: "%.0f%%", session.utilization))
                     .font(.system(size: 11, weight: .medium))
                     .monospacedDigit()
             }
         }
+    }
+}
+
+struct MenuBarIconView: View {
+    var body: some View {
+        if let image = loadMenuBarIcon() {
+            Image(nsImage: image)
+                .renderingMode(.template)
+        } else {
+            ClaudeLogoView(size: 14, color: .primary)
+        }
+    }
+
+    private func loadMenuBarIcon() -> NSImage? {
+        if let url = Bundle.module.url(forResource: "MenuBarIcon", withExtension: "png"),
+           let image = NSImage(contentsOf: url) {
+            image.size = NSSize(width: 16, height: 16)
+            image.isTemplate = true
+            return image
+        }
+        return nil
     }
 }

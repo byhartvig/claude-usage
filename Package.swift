@@ -15,6 +15,10 @@ let package = Package(
                 "Models/UsageData.swift",
                 "Views/UsageMenuView.swift",
                 "Views/ClaudeLogo.swift"
+            ],
+            resources: [
+                .copy("Resources/MenuBarIcon.png"),
+                .copy("Resources/MenuBarIcon@2x.png")
             ]
         )
     ]
