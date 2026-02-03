@@ -59,9 +59,32 @@ struct UsageMenuView: View {
                     }
                 }
                 .padding(.horizontal, 20)
+
+                // Local Stats
+                if let stats = state.localStats {
+                    Divider()
+                        .padding(.top, 20)
+                        .padding(.horizontal, 20)
+
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("All Time Stats")
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundColor(.secondary)
+                            .padding(.top, 16)
+
+                        VStack(spacing: 6) {
+                            StatRow(label: "Messages", value: stats.totalMessages?.formatted ?? "0")
+                            StatRow(label: "Sessions", value: stats.totalSessions?.formatted ?? "0")
+                            StatRow(label: "Tool Calls", value: stats.totalToolCalls.formatted)
+                            StatRow(label: "Days Active", value: "\(stats.daysSinceFirstSession)")
+                            StatRow(label: "Peak Hour", value: stats.mostActiveHour)
+                        }
+                    }
+                    .padding(.horizontal, 20)
+                }
             }
 
-            Spacer(minLength: 32)
+            Spacer(minLength: 24)
 
             // Footer
             VStack(spacing: 12) {
@@ -102,7 +125,7 @@ struct UsageMenuView: View {
             .padding(.horizontal, 20)
             .padding(.bottom, 20)
         }
-        .frame(width: 300, height: 410)
+        .frame(width: 300, height: 580)
     }
 
     private var authPrompt: some View {
@@ -161,6 +184,22 @@ struct UsageSection: View {
                     .font(.system(size: 13))
                     .foregroundColor(.secondary)
             }
+        }
+    }
+}
+
+struct StatRow: View {
+    let label: String
+    let value: String
+
+    var body: some View {
+        HStack {
+            Text(label)
+                .font(.system(size: 12))
+                .foregroundColor(.secondary)
+            Spacer()
+            Text(value)
+                .font(.system(size: 12, weight: .medium))
         }
     }
 }

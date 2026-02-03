@@ -108,6 +108,7 @@ class UsageState: ObservableObject {
     @Published var sonnetLimit: UsageLimit?
     @Published var opusLimit: UsageLimit?
     @Published var extraUsage: ExtraUsage?
+    @Published var localStats: LocalStatsCache?
 
     @Published var subscriptionType: String = ""
     @Published var isLoading = false
@@ -119,13 +120,25 @@ class UsageState: ObservableObject {
     private var refreshTimer: Timer?
 
     init() {
+        loadLocalStats()
         checkAuthAndRefresh()
         startAutoRefresh()
     }
 
     func refresh() {
+        loadLocalStats()
         Task { @MainActor in
             await fetchUsage()
+        }
+    }
+
+    private func loadLocalStats() {
+        let statsPath = NSString(string: "~/.claude/stats-cache.json").expandingTildeInPath
+        guard let data = FileManager.default.contents(atPath: statsPath) else { return }
+        do {
+            localStats = try JSONDecoder().decode(LocalStatsCache.self, from: data)
+        } catch {
+            print("Failed to load local stats: \(error)")
         }
     }
 
@@ -239,10 +252,84 @@ enum UsageError: LocalizedError {
     }
 }
 
+// MARK: - Local Stats Cache (from ~/.claude/stats-cache.json)
+
+struct LocalStatsCache: Codable {
+    let totalSessions: Int?
+    let totalMessages: Int?
+    let longestSession: LongestSession?
+    let modelUsage: [String: ModelUsage]?
+    let firstSessionDate: String?
+    let hourCounts: [String: Int]?
+    let dailyActivity: [DailyActivity]?
+
+    struct LongestSession: Codable {
+        let duration: Int?
+        let messageCount: Int?
+    }
+
+    struct ModelUsage: Codable {
+        let inputTokens: Int?
+        let outputTokens: Int?
+        let cacheReadInputTokens: Int?
+        let cacheCreationInputTokens: Int?
+    }
+
+    struct DailyActivity: Codable {
+        let date: String?
+        let messageCount: Int?
+        let sessionCount: Int?
+        let toolCallCount: Int?
+    }
+
+    var totalToolCalls: Int {
+        guard let activity = dailyActivity else { return 0 }
+        return activity.reduce(0) { $0 + ($1.toolCallCount ?? 0) }
+    }
+
+    var totalTokens: Int {
+        guard let usage = modelUsage else { return 0 }
+        return usage.values.reduce(0) { sum, model in
+            sum + (model.inputTokens ?? 0) + (model.outputTokens ?? 0)
+        }
+    }
+
+    var mostActiveHour: String {
+        guard let counts = hourCounts, !counts.isEmpty else { return "N/A" }
+        let maxHour = counts.max(by: { $0.value < $1.value })
+        guard let hour = maxHour?.key, let hourInt = Int(hour) else { return "N/A" }
+
+        let formatter = DateFormatter()
+        formatter.dateFormat = "ha"
+        var components = DateComponents()
+        components.hour = hourInt
+        if let date = Calendar.current.date(from: components) {
+            return formatter.string(from: date).lowercased()
+        }
+        return "\(hourInt):00"
+    }
+
+    var daysSinceFirstSession: Int {
+        guard let dateString = firstSessionDate else { return 0 }
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        guard let firstDate = formatter.date(from: dateString) else { return 0 }
+        return Calendar.current.dateComponents([.day], from: firstDate, to: Date()).day ?? 0
+    }
+}
+
 // MARK: - Formatting
 
 extension Double {
     var percentFormatted: String {
         String(format: "%.0f%%", self)
+    }
+}
+
+extension Int {
+    var formatted: String {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .decimal
+        return formatter.string(from: NSNumber(value: self)) ?? "\(self)"
     }
 }
