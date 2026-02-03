@@ -8,7 +8,11 @@ A native macOS menu bar app that displays your Claude API usage statistics.
 
 [**Download latest release (DMG)**](https://github.com/byhartvig/claude-usage/releases/latest)
 
-> **Note:** The DMG is unsigned. You'll need to right-click → Open to bypass Gatekeeper, and grant Keychain access.
+> **Note:** The DMG is unsigned. After copying to Applications, run this command to remove the quarantine flag:
+> ```bash
+> xattr -cr "/Applications/Claude Usage.app"
+> ```
+> Then open the app and grant Keychain access when prompted.
 
 ## Features
 
