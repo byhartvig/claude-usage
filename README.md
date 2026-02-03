@@ -4,6 +4,12 @@ A native macOS menu bar app that displays your Claude API usage statistics.
 
 ![Screenshot](screenshot.png)
 
+## Download
+
+[**Download latest release (DMG)**](https://github.com/byhartvig/claude-usage/releases/latest)
+
+> **Note:** The DMG is unsigned. You'll need to right-click → Open to bypass Gatekeeper, and grant Keychain access.
+
 ## Features
 
 - **Session usage** - 5-hour rolling window utilization
